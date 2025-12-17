@@ -68,8 +68,15 @@ rules:
 
   # Interest payouts
   - name: "Zinsen"
-    when:
-      postbox_type: "INTEREST_PAYOUT_INVOICE"
+    conditions:
+      logic: OR
+      rules:
+        - field: postbox_type
+          operator: equals
+          value: "INTEREST_PAYOUT_INVOICE" 
+        - field: event_title
+          operator: equals
+          value: "Zinsen"
     path: "Zinsen"
     filename: $template.dt_doctitle
 
