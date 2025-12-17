@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trade Republic Document Sorting Rules",
+  "description": "Configuration schema for sorting Trade Republic documents with rules, conditions, and templates",
+  "type": "object",
+  "properties": {
+    "templates": {
+      "type": "object",
+      "description": "Reusable filename patterns that can be referenced in rules using $template.name",
+      "additionalProperties": {
+        "type": "string",
+        "description": "Template pattern with placeholders like {time_str}, {event_title}, {document_title}, etc.",
+        "examples": [
+          "{time_str} - {event_title}.pdf",
+          "{time_str} - {document_title}.pdf",
+          "{event_title|document_title|'Unknown'}.pdf"
+        ]
+      }
+    },
+    "rules": {
+      "type": "array",
+      "description": "List of sorting rules. Each file must match exactly one rule.",
+      "items": {
+        "$ref": "#/definitions/rule"
+      }
+    }
+  },
+  "required": ["rules"],
+  "definitions": {
+    "rule": {
+      "type": "object",
+      "description": "A sorting rule that defines conditions and destination for matching files",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Descriptive name for the rule (used in logging and debugging)",
+          "minLength": 1
+        },
+        "when": {
+          "$ref": "#/definitions/whenConditions",
+          "description": "Simplified condition syntax (recommended for most cases)"
+        },
+        "conditions": {
+          "$ref": "#/definitions/conditions",
+          "description": "Extended condition syntax (for complex logic, operators like contains, regex, etc.)"
+        },
+        "path": {
+          "type": "string",
+          "description": "Target folder path (relative to base directory). Can be a fixed string, pattern with {placeholders}, or $template.name reference",
+          "examples": [
+            "Dividends",
+            "Income/{event_title}",
+            "$template.my_path"
+          ]
+        },
+        "filename": {
+          "type": "string",
+          "description": "Target filename. Can be a fixed string, pattern with {placeholders} or fallbacks {field1|field2|'default'}, or $template.name reference",
+          "examples": [
+            "{time_str} - {event_title}.pdf",
+            "{event_title|document_title|'Unknown'}.pdf",
+            "$template.date_eventtitle"
+          ]
+        }
+      },
+      "required": ["name", "path", "filename"],
+      "oneOf": [
+        {
+          "required": ["when"]
+        },
+        {
+          "required": ["conditions"]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "whenConditions": {
+      "type": "object",
+      "description": "Simplified condition syntax: field: value (equals), field: [values] (OR), multiple fields (AND)",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string",
+            "description": "Single value: exact match required"
+          },
+          {
+            "type": "array",
+            "description": "Multiple values: OR logic (any value matches)",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "properties": {
+        "postbox_type": {
+          "description": "Document type from Trade Republic API",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ],
+          "examples": [
+            "INCOME",
+            "SECURITIES_SETTLEMENT",
+            ["CA_INCOME_INVOICE", "INCOME"]
+          ]
+        },
+        "document_title": {
+          "description": "Title of the document",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "document_detail": {
+          "description": "Additional document details",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "event_title": {
+          "description": "Event title (e.g., company name)",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "event_subtitle": {
+          "description": "Event subtitle (e.g., 'Dividend', 'Information')",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "time_str": {
+          "description": "Formatted timestamp",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        },
+        "filename": {
+          "description": "Original filename",
+          "oneOf": [
+            {"type": "string"},
+            {"type": "array", "items": {"type": "string"}}
+          ]
+        }
+      }
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Extended condition syntax with operators and nested logic",
+      "properties": {
+        "logic": {
+          "type": "string",
+          "enum": ["AND", "OR"],
+          "description": "Logical operator for combining rules"
+        },
+        "rules": {
+          "type": "array",
+          "description": "List of conditions or nested condition groups",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/simpleCondition"
+              },
+              {
+                "$ref": "#/definitions/conditions"
+              }
+            ]
+          }
+        }
+      },
+      "required": ["logic", "rules"],
+      "additionalProperties": false
+    },
+    "simpleCondition": {
+      "type": "object",
+      "description": "A single condition with field, operator, and value",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Metadata field name to check",
+          "enum": [
+            "postbox_type",
+            "document_title",
+            "document_detail",
+            "event_title",
+            "event_subtitle",
+            "time_str",
+            "timestamp",
+            "filename"
+          ]
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "not_equals",
+            "contains",
+            "starts_with",
+            "ends_with",
+            "regex"
+          ],
+          "description": "Comparison operator"
+        },
+        "value": {
+          "type": "string",
+          "description": "Value to compare against (for regex: regular expression pattern)"
+        }
+      },
+      "required": ["field", "operator", "value"],
+      "additionalProperties": false
+    }
+  }
+}

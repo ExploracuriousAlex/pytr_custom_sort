@@ -1,0 +1,254 @@
+# yaml-language-server: $schema=./tr_sorting_rules.schema.json
+
+# Configuration for Trade Republic Document Sorting
+#
+# For complete documentation of the rule syntax with all options,
+# see: rules_documentation.md
+#
+# Quick overview:
+# 
+# Simple rule (single field):
+#   when:
+#     field_name: "value"
+#
+# Multiple fields (AND):
+#   when:
+#     field1: "value1"
+#     field2: "value2"
+#
+# OR with array:
+#   when:
+#     field: ["value1", "value2"]
+#
+# Complex conditions (for contains, regex, etc.):
+#   conditions:
+#     logic: AND
+#     rules:
+#       - field: field_name
+#         operator: contains
+#         value: "text"
+#
+# Templates (reusable patterns):
+#   templates:
+#     template_name: "pattern with {placeholders}"
+#   Then use in rules:
+#     filename: $template.template_name
+#
+# Fallback placeholders:
+#   filename: "{event_title|document_title|'Unknown'}.pdf"
+#   Uses event_title, if empty uses document_title, if empty uses 'Unknown'
+
+# ============================================================================
+# TEMPLATES - Reusable filename patterns
+# ============================================================================
+templates:
+  # Standard timestamp with event title
+  dt_eventtitle: "{date_time_str} - {event_title}.pdf"
+  
+  # Standard timestamp with document title
+  dt_doctitle: "{date_time_str} - {document_title}.pdf"
+  
+  # Event with subtitle
+  dt_eventtitle_eventsubtitle: "{date_time_str} - {event_title} - {event_subtitle}.pdf"
+  
+  # Document with event information
+  dt_doctitle_eventtitle: "{date_time_str} - {document_title} - {event_title}.pdf"
+  
+rules:
+  # ============================================================================
+  # SIMPLE RULES (only postbox_type condition)
+  # ============================================================================
+
+  # Dividends
+  - name: "Dividenden"
+    when:
+      postbox_type: ["CA_INCOME_INVOICE", "INCOME"]
+    path: "Dividenden"
+    filename: $template.dt_eventtitle
+
+  # Interest payouts
+  - name: "Zinsen"
+    when:
+      postbox_type: "INTEREST_PAYOUT_INVOICE"
+    path: "Zinsen"
+    filename: $template.dt_doctitle
+
+  # General meetings
+  - name: "Hauptversammlungen (GENERAL_MEETING)"
+    when:
+      postbox_type: "GENERAL_MEETING"
+    path: "Hauptversammlungen"
+    filename: $template.dt_eventtitle
+
+  # Securities settlements
+  - name: "Wertpapierabrechnungen"
+    when:
+      postbox_type: "SECURITIES_SETTLEMENT"
+    path: "Wertpapierabrechnungen"
+    filename: $template.dt_doctitle
+
+  # Cost information
+  - name: "Kosteninformationen"
+    when:
+      postbox_type: "COSTS_INFO_BUY_V2"
+    path: "Kosteninformationen"
+    filename: $template.dt_doctitle
+
+  # Base information
+  - name: "Basisinformationen"
+    when:
+      postbox_type: ["BASE_INFO", "INFO"]
+    path: "Basisinformationen"
+    filename: $template.dt_doctitle
+
+  # Savings plan executions
+  - name: "Sparplanausführungen"
+    when:
+      postbox_type: ["SAVINGS_PLAN_EXECUTED_V2", "SECURITIES_SETTLEMENT_SAVINGS_PLAN"]
+    path: "Sparplanausführungen"
+    filename: $template.dt_eventtitle
+
+  # Ex-post cost reports
+  - name: "Ex-Post Kosteninformationen"
+    when:
+      postbox_type: ["EX_POST_COST_REPORT_V2", "EX_POST_COST_REPORT"]
+    path: "Ex-Post Kosteninformationen"
+    filename: $template.dt_doctitle
+
+  # Yearly tax reports
+  - name: "Jährlicher Steuerreport"
+    when:
+      postbox_type: ["yearlyTaxReport", "YEAR_END_TAX_REPORT"]
+    path: "Jährlicher Steuerreport"
+    filename: $template.dt_doctitle
+
+  # Vorabpauschale (advance flat-rate tax)
+  - name: "Vorabpauschale"
+    when:
+      postbox_type: ["CA_VOPA_INVOICE", "PRE_DETERMINED_TAX_BASE_EARNING_V2"]
+    path: "Vorabpauschale"
+    filename: $template.dt_eventtitle
+
+  # Legal documents
+  - name: "Rechtliche Dokumente"
+    when:
+      postbox_type: ["DOCUMENTS_CREATED", "DOCUMENTS_ACCEPTED"]
+    path: "Rechtliche Dokumente"
+    filename: $template.dt_doctitle
+
+  # Outgoing transfers
+  - name: "Ausgehende Überweisungen"
+    when:
+      postbox_type: "OUTGOING_TRANSFER"
+    path: "Ausgehende Überweisungen"
+    filename: $template.dt_doctitle
+
+  # Order deletion confirmations
+  - name: "Löschbestätigungen"
+    when:
+      postbox_type: "CONFIRM_ORDER_DELETE_V2"
+    path: "Löschbestätigungen"
+    filename: $template.dt_eventtitle_eventsubtitle
+
+  # Incoming transfers
+  - name: "Eingehende Überweisungen"
+    when:
+      postbox_type: "INCOMING_TRANSFER"
+    path: "Eingehende Überweisungen"
+    filename: $template.dt_doctitle
+
+  # Securities account statements
+  - name: "Depotauszüge"
+    when:
+      postbox_type: "SECURITIES_ACCOUNT_STATEMENT_V2"
+    path: "Depotauszüge"
+    filename: $template.dt_eventtitle
+
+  # Deposits/payments inbound
+  - name: "Einzahlungen"
+    when:
+      postbox_type: "PAYMENT_INBOUND_INVOICE"
+    path: "Einzahlungen"
+    filename: $template.dt_doctitle
+
+  # SEPA mandates
+  - name: "SEPA-Mandate"
+    when:
+      postbox_type: "SEPA_DIRECT_DEBIT_MANDATE_CREATED"
+    path: "SEPA-Mandate"
+    filename: $template.dt_doctitle
+
+  # Crypto statements
+  - name: "Cryptoauszüge"
+    when:
+      postbox_type: "CRYPTO_DEPOSIT_STATEMENT_V2"
+    path: "Cryptoauszüge"
+    filename: $template.dt_eventtitle
+
+  # Cash account statements
+  - name: "Kontoauszüge"
+    when:
+      postbox_type: "CASH_ACCOUNT_STATEMENT_V2"
+    path: "Kontoauszüge"
+    filename: $template.dt_eventtitle
+
+  # ============================================================================
+  # COMPLEX RULES (postbox_type + additional conditions)
+  # ============================================================================
+
+  # SHAREBOOKING - Incoming depot transfer
+  - name: "Depotübertrag eingehend"
+    when:
+      postbox_type: "SHAREBOOKING"
+      document_title: "Abrechnung"
+    path: "Depotübertrag eingehend"
+    filename: $template.dt_eventtitle_eventsubtitle
+
+  # SHAREBOOKING - Tax exchange
+  - name: "Steuerlicher Umtausch"
+    when:
+      postbox_type: "SHAREBOOKING"
+      document_title: "Ausführungsanzeige"
+      event_subtitle: "Steuerlicher Umtausch"
+    path: "Steuerlicher Umtausch"
+    filename: $template.dt_eventtitle
+
+  # GENERAL_CORPACTION_V2 - Company announcements
+  - name: "Unternehmensmeldungen"
+    when:
+      postbox_type: "GENERAL_CORPACTION_V2"
+      event_subtitle: "Unternehmensmeldung"
+    path: "Unternehmensmeldungen"
+    filename: $template.dt_doctitle_eventtitle
+
+  # GENERAL_CORPACTION_V2 - Company notices
+  - name: "Gesellschaftshinweise"
+    when:
+      postbox_type: "GENERAL_CORPACTION_V2"
+      event_subtitle: "Gesellschaftshinweis"
+    path: "Gesellschaftshinweise"
+    filename: $template.dt_doctitle_eventtitle
+
+  # INFORMATIVE_CA - Annual general meetings
+  - name: "Hauptversammlungen (INFORMATIVE_CA)"
+    when:
+      postbox_type: "INFORMATIVE_CA"
+      event_subtitle: "Jährliche Hauptversammlung"
+    path: "Hauptversammlungen"
+    filename: $template.dt_eventtitle
+
+  # INFORMATIVE_CA - Information
+  - name: "Informationen"
+    when:
+      postbox_type: "INFORMATIVE_CA"
+      event_subtitle: "Information"
+    path: "Informationen"
+    filename: $template.dt_eventtitle
+
+  # INFORMATIVE_CA - Exchange
+  - name: "Wechsel"
+    when:
+      postbox_type: "INFORMATIVE_CA"
+      event_subtitle: "Wechsel"
+    path: "Wechsel"
+    filename: $template.dt_eventtitle
