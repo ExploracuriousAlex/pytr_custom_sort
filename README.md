@@ -53,9 +53,9 @@ For more details about pytr, visit: <https://github.com/pytr-org/pytr>
 
 ### 2. Configure Sorting Rules
 
-Adapt the `tr_sorting_rules.yaml` file to define your preferred sorting rules.
+Adapt the `config/tr_sorting_rules.yaml` file to define your preferred sorting rules.
 
-For detailed information on how to configure sorting rules, see [rules_documentation.md](rules_documentation.md).
+For detailed information on how to configure sorting rules, see [docs/rules_documentation.md](docs/rules_documentation.md).
 
 ### 3. Run the Sorting Tool
 
@@ -67,8 +67,28 @@ uv run sort_tr_docs.py <your_download_folder>
 
 ## Documentation
 
-- `tr_sorting_rules.yaml` - Configuration file for sorting rules
-- [rules_documentation.md](rules_documentation.md) - Detailed guide on creating and customizing sorting rules
+- [config/tr_sorting_rules.yaml](config/tr_sorting_rules.yaml) - Configuration file for sorting rules
+- [docs/rules_documentation.md](docs/rules_documentation.md) - Detailed guide on creating and customizing sorting rules
+
+## Project Structure
+
+```
+pytr_custom_sort/
+├── rule_based_sort/           # Generic rule-based sorting module
+│   ├── __init__.py
+│   └── rule_based_sorter.py   # Sorting business logic
+├── tests/                     # Test suite
+│   └── test_rule_based_sorter.py
+├── config/                    # Configuration files
+│   ├── tr_sorting_rules.yaml
+│   └── tr_sorting_rules.schema.json
+├── docs/                      # Documentation
+│   └── rules_documentation.md
+├── sort_tr_docs.py            # Main CLI script
+├── README.md
+├── LICENSE
+└── pyproject.toml
+```
 
 ## License
 
