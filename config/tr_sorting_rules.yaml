@@ -132,7 +132,7 @@ rules:
   # Vorabpauschale (advance flat-rate tax)
   - name: "Vorabpauschale"
     when:
-      postbox_type: ["CA_VOPA_INVOICE", "PRE_DETERMINED_TAX_BASE_EARNING_V2"]
+      postbox_type: ["CA_VOPA_INVOICE", "PRE_DETERMINED_TAX_BASE_EARNING_V2", "VOPA"]
     path: "Vorabpauschale"
     filename: $template.dt_eventtitle
 
