@@ -220,6 +220,15 @@ rules:
     path: "Steuerlicher Umtausch"
     filename: $template.dt_eventtitle
 
+    # SHAREBOOKING - Tax exchange
+  - name: "Kapitalmaßnahme"
+    when:
+      postbox_type: "SHAREBOOKING"
+      document_title: "Ausführungsanzeige"
+      event_subtitle: "Kapitalmaßnahme"
+    path: "Kapitalmaßnahme"
+    filename: $template.dt_eventtitle
+
   # GENERAL_CORPACTION_V2 - Company announcements
   - name: "Unternehmensmeldungen"
     when:
@@ -230,9 +239,15 @@ rules:
 
   # GENERAL_CORPACTION_V2 - Company notices
   - name: "Gesellschaftshinweise"
-    when:
-      postbox_type: "GENERAL_CORPACTION_V2"
-      event_subtitle: "Gesellschaftshinweis"
+    conditions:
+      logic: AND
+      rules:
+        - field: postbox_type
+          operator: equals
+          value: "GENERAL_CORPACTION_V2"
+        - field: event_subtitle
+          operator: not_equals
+          value: "Unternehmensmeldung"
     path: "Gesellschaftshinweise"
     filename: $template.dt_doctitle_eventtitle
 
