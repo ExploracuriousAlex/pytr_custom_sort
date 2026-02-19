@@ -124,8 +124,18 @@ rules:
 
   # Yearly tax reports
   - name: "Jährlicher Steuerreport"
-    when:
-      postbox_type: ["yearlyTaxReport", "YEAR_END_TAX_REPORT"]
+    conditions:
+      logic: OR
+      rules:
+        - field: postbox_type
+          operator: equals
+          value: "yearlyTaxReport"
+        - field: postbox_type
+          operator: equals
+          value: "YEAR_END_TAX_REPORT"
+        - field: document_title
+          operator: regex
+          value: "Steuerbericht \\d{4}"
     path: "Jährlicher Steuerreport"
     filename: $template.dt_doctitle
 
